@@ -3,13 +3,13 @@
 " ------------------------------------------------------------------------
 " <C-w> v   : vsplit window
 " <C-w> s   : split window
-" <C-w> s   : split window
-" S         : 搜索文档 
 " <C-m> p   : markdown preview
 " <C-m> t   : markdown toggle preview
 " <C-]>     : ctags 代码跳转，初始化：!ctags -R . :set tags=tags
-" H         : 前一个page
-" L         : 后一个page
+" <C-\>     : tags bar
+" S         : 搜索当前整个目录
+" gd        : 跳转到文档
+" nt        : 增加标签页
 " 
 " CocInstall -sync coc-* install coc extension
 " 
@@ -55,17 +55,84 @@ Plug 'mattn/emmet-vim' " html language
 
 " 实用工具
 Plug 'Shougo/denite.nvim'
-Plug 'sunaku/vim-dasht'               " 文档查询
+Plug 'tpope/vim-repeat'
+Plug 'mattn/calendar-vim'
+
+" ------------------------------------------------------------------------
+" <Dash文档查询>
+" gd - go to docsets
+" ------------------------------------------------------------------------
+Plug 'sunaku/vim-dasht'
+nnoremap gd :call Dasht([expand('<cword>'), expand('<cWORD>')])<Return>
+vnoremap gd y:<C-U>call Dasht(getreg(0))<Return>
+" let g:dasht_filetype_docsets['python'] = ['(num|sci)py', 'pandas'] " When in Python, also search NumPy, SciPy, and Pandas:
+let g:dasht_results_window = 'botright vnew' " create panel at right-most edge
+
+" ------------------------------------------------------------------------
+" <Markdown>
+" ------------------------------------------------------------------------
 Plug 'rhysd/nyaovim-markdown-preview' " markdown 预览
 Plug 'iamcco/markdown-preview.nvim', { 'do': { -> mkdp#util#install() } } " markdown 预览
+nmap <c-m>p <Plug>MarkdownPreview
+nmap <c-m>t <Plug>MarkdownPreviewToggle
+nmap <c-m>c <Plug>MarkdownPreviewClose
+
+" ------------------------------------------------------------------------
+" <VimWiki> 
+" ------------------------------------------------------------------------
+" set nocompatible
+" Plug 'vimwiki/vimwiki'
+" Plug 'WnP/vimwiki_markdown'
+" let g:vimwiki_menu = ''         " 不在菜单栏上显示Vimwiki
+" let g:vimwiki_use_mouse = 1     " 使用鼠标
+" let g:vimwiki_diary_months = {
+"     \ 1: '一月', 2: '二月', 3: '三月', 4: '四月', 5: '五月', 6: '六月',
+"     \ 7: '七月', 8: '八月', 9: '九月', 10: '十月', 11: '十一月', 12: '十二月'
+"     \ }                         " 设置日期显示文字
+" autocmd FileType vimwiki setlocal wrap " 折行
+" let g:vimwiki_valid_html_tags = 'b,i,s,u,sub,sup,kbd,br,hr,img' " 设置可以在笔记中使用的Html Tag
+" let wiki_notes = {}          " 笔记
+" let wiki_notes.path = '~/Documents/notes/'                       " 笔记文件路径
+" let wiki_notes.path_html = '~/Documents/notes/output/'                       " 笔记转换为HTML输出路径
+" let wiki_notes.syntax = 'markdown'                               " markdown 语法
+" let wiki_notes.ext = '.md'
+" let wiki_notes.custom_wiki2html = 'vimwiki_markdown'
+" let wiki_notes.auto_export = 0
+" let notes.template_path = '~/Documents/notes/template/'                 " 用于生成HTML页面的模板
+" let notes.template_default = 'kesco.tpl'                                " 默认模板
+" let notes.nested_syntaxes = {'ruby': 'ruby', 'python': 'python', 'c++': 'cpp', 'java': 'java',
+"    \ 'sh': 'sh', 'viml': 'vim', 'xml': 'xml' }                         " 启用的代码语法高亮
+" let g:vimwiki_list = [wiki_notes]                                            " 笔记列表
+" nmap <leader>wc <Plug>VimwikiAll2HTML
+" map <C-\>       <Plug>VimwikiToggleListItem
+
+" ------------------------------------------------------------------------
+" <Tag配置>
+" ------------------------------------------------------------------------
+Plug 'matt-snider/vim-tagquery', { 'do': 'bash install.sh' }
+Plug 'majutsushi/tagbar'
+nmap <C-\> :TagbarToggle<CR>
+" 启动时自动focus
+let g:tagbar_autofocus = 1
+" for ruby, delete if you do not need
+let g:tagbar_type_ruby = {
+      \ 'kinds' : [
+      \ 'm:modules',
+      \ 'c:classes',
+      \ 'd:describes',
+      \ 'C:contexts',
+      \ 'f:methods',
+      \ 'F:singleton methods'
+      \ ]
+  \}
 
 call plug#end()
 
 " ------------------------------------------------------------------------
 " <语言配置>
 " ------------------------------------------------------------------------
-let g:ruby_host_prog = '/Users/liush/.rvm/rubies/ruby-2.5.3/bin/ruby' " ruby complier
-let g:python3_host_prog = '/usr/local/bin/python3' " python3 complier
+let g:ruby_host_prog = '/home/liush/.rvm/rubies/ruby-2.5.3/bin/ruby' " ruby complier
+let g:python3_host_prog = '/home/liush/miniconda3/bin/python' " python3 complier
 " disbale syntax highlighting to prevent performence issue
 let g:defx_icons_enable_syntax_highlight = 1
 let g:deoplete#enable_at_startup = 1 " 自动启动 deoplete 自动补全
@@ -114,6 +181,7 @@ set fileencodings=ucs-bom,utf-8,gbk,cp936,latin-1     "设置支持打开的文�
 " ------------------------------------------------------------------------
 "  < 编写文件时的配置 >
 " ------------------------------------------------------------------------
+syntax on
 filetype on                                           "启用文件类型侦测
 filetype plugin on                                    "针对不同的文件类型加载对应的插件
 filetype plugin indent on                             "启用缩进
@@ -130,15 +198,19 @@ set ignorecase                                        "搜索模式里忽略大�
 set smartcase                                         "如果搜索模式包含大写字符，不使用 'ignorecase' 选项，只有在输入搜索模式并且打开 'ignorecase' 选项时才会使用
 " set noincsearch                                     "在输入要搜索的文字时，取消实时匹配
 set autoread                                          "当文件在外部被修改，自动更新该文件
+
+noremap nt :tabnew<CR>
 " 常规模式下用空格键来开关光标行所在折叠（注：zR 展开所有折叠，zM 关闭所有折叠）
-nnoremap <space> @=((foldclosed(line('.')) < 0) ? 'zc' : 'zo')<CR>
+" nnoremap <space> @=((foldclosed(line('.')) < 0) ? 'zc' : 'zo')<CR>
+nnoremap <space> @=((foldclosed(line('.')) < 0) ? 'zc' : 'zA')<CR>
 " 可用t<k,j,h,l>切换到上下左右的窗口中去
 noremap <c-k> <c-w>k
 noremap <c-j> <c-w>j
 noremap <c-h> <c-w>h
 noremap <c-l> <c-w>l
+
 " ctrl + e 开关目录
-nmap <c-e> :NERDTreeToggle<CR> 
+nmap <c-e> :NERDTreeToggle<CR>
 " 代码对齐
 xmap ga <Plug>(EasyAlign)
 nmap ga <Plug>(EasyAlign)
@@ -147,17 +219,14 @@ nmap ga <Plug>(EasyAlign)
 noremap H <c-^>
 noremap L <c-^>
 
-" ------------------------------------------------------------------------
-"  < 实用工具 >
-" ------------------------------------------------------------------------
-nmap <c-m>p <Plug>MarkdownPreview
-nmap <c-m>t <Plug>MarkdownPreviewToggle
-nmap <c-m>c <Plug>MarkdownPreviewClose
+" 自动将quickfix输出放入vim
+augroup quickfix
+  autocmd!
+  autocmd QuickFixCmdPre silent
+  autocmd QuickFixCmdPost [^l]* cwindow | redraw!
+augroup END
 
-" dasht 配置
-nnoremap S :call Dasht([expand('<cword>'), expand('<cWORD>')])<Return>
-vnoremap S y:<C-U>call Dasht(getreg(0))<Return>
-" When in Python, also search NumPy, SciPy, and Pandas:
-" let g:dasht_filetype_docsets['python'] = ['(num|sci)py', 'pandas']
-" create panel at right-most edge
-let g:dasht_results_window = 'botright vnew'
+" S - Search word in current dictory
+nnoremap S :silent grep! -r <cword> . <Return>
+" <C-r>" is paste command in commend mode.
+vnoremap S y:<C-U>silent grep! --line-number -R --exclude=*.log <C-r>" . <Return> 
