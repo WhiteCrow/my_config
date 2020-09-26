@@ -33,7 +33,8 @@ Plug 'scrooloose/syntastic'
 Plug 'vim-airline/vim-airline' " 编辑器底栏
 Plug 'vim-airline/vim-airline-themes' " 编辑器底栏
 Plug 'airblade/vim-gitgutter'
-Plug 'morhetz/gruvbox' " gruvbox theme
+Plug 'mhartington/oceanic-next'
+" Plug 'morhetz/gruvbox' " gruvbox theme
 " Plug 'altercation/vim-colors-solarized' " solarized theme
 
 " 文件导航
@@ -149,7 +150,14 @@ set nowrap                                            "设置不自动换行
 " 设置代码配色方案
 set nu
 set t_Co=256
-colorscheme gruvbox  "use the theme gruvbox
+
+if (has("termguicolors"))
+  set termguicolors
+endif
+
+" Theme
+syntax enable
+colorscheme OceanicNext
 set background=dark "use the light version of gruvbox
 " change the color of chars over the width of 80 into blue
 " (uncomment to enable it)
